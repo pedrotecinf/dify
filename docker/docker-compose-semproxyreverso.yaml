@@ -511,7 +511,7 @@ services:
 
   # The postgres database.
   db:
-    image: postgres
+    image: postgres:16
     restart: always
     environment:
       PGUSER: ${PGUSER:-postgres}
