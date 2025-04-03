@@ -456,9 +456,9 @@ services:
     depends_on:
       - db
       - redis
-    volumes:
-      # Mount the storage directory to the container, for storing user files.
-      - ./volumes/app/storage:/app/api/storage
+    # volumes:
+    #   # Mount the storage directory to the container, for storing user files.
+    #   - ./volumes/app/storage:/app/api/storage
     networks:
       - ssrf_proxy_network
       - default
@@ -481,9 +481,9 @@ services:
     depends_on:
       - db
       - redis
-    volumes:
-      # Mount the storage directory to the container, for storing user files.
-      - ./volumes/app/storage:/app/api/storage
+    # volumes:
+    #   # Mount the storage directory to the container, for storing user files.
+    #   - ./volumes/app/storage:/app/api/storage
     networks:
       - ssrf_proxy_network
       - default
@@ -525,7 +525,7 @@ services:
                -c 'maintenance_work_mem=${POSTGRES_MAINTENANCE_WORK_MEM:-64MB}'
                -c 'effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE:-4096MB}'
     volumes:
-      - ./volumes/db/data:/var/lib/postgresql/data
+      - difydb_data:/var/lib/postgresql/data
     healthcheck:
       test: [ 'CMD', 'pg_isready' ]
       interval: 1s
@@ -540,7 +540,7 @@ services:
       REDISCLI_AUTH: ${REDIS_PASSWORD:-difyai123456}
     volumes:
       # Mount the redis data directory to the container.
-      - ./volumes/redis/data:/data
+      - dify_redis_data:/data
     # Set the redis password when startup redis server.
     command: redis-server --requirepass ${REDIS_PASSWORD:-difyai123456}
     healthcheck:
@@ -561,9 +561,9 @@ services:
       HTTP_PROXY: ${SANDBOX_HTTP_PROXY:-http://ssrf_proxy:3128}
       HTTPS_PROXY: ${SANDBOX_HTTPS_PROXY:-http://ssrf_proxy:3128}
       SANDBOX_PORT: ${SANDBOX_PORT:-8194}
-    volumes:
-      - ./volumes/sandbox/dependencies:/dependencies
-      - ./volumes/sandbox/conf:/conf
+    # volumes:
+    #   - ./volumes/sandbox/dependencies:/dependencies
+    #   - ./volumes/sandbox/conf:/conf
     healthcheck:
       test: [ 'CMD', 'curl', '-f', 'http://localhost:8194/health' ]
     networks:
@@ -593,7 +593,7 @@ services:
     ports:
       - "${EXPOSE_PLUGIN_DEBUGGING_PORT:-5003}:${PLUGIN_DEBUGGING_PORT:-5003}"
     volumes:
-      - ./volumes/plugin_daemon:/app/storage
+      - plugin_daemon:/app/storage
     depends_on:
       - db
 
@@ -619,24 +619,24 @@ services:
       - default
 
   # Certbot service
-  # use `docker-compose --profile certbot up` to start the certbot service.
-  certbot:
-    image: certbot/certbot
-    profiles:
-      - certbot
-    volumes:
-      - ./volumes/certbot/conf:/etc/letsencrypt
-      - ./volumes/certbot/www:/var/www/html
-      - ./volumes/certbot/logs:/var/log/letsencrypt
-      - ./volumes/certbot/conf/live:/etc/letsencrypt/live
-      - ./certbot/update-cert.template.txt:/update-cert.template.txt
-      - ./certbot/docker-entrypoint.sh:/docker-entrypoint.sh
-    environment:
-      - CERTBOT_EMAIL=${CERTBOT_EMAIL}
-      - CERTBOT_DOMAIN=${CERTBOT_DOMAIN}
-      - CERTBOT_OPTIONS=${CERTBOT_OPTIONS:-}
-    entrypoint: [ '/docker-entrypoint.sh' ]
-    command: [ 'tail', '-f', '/dev/null' ]
+  # # use `docker-compose --profile certbot up` to start the certbot service.
+  # certbot:
+  #   image: certbot/certbot
+  #   profiles:
+  #     - certbot
+  #   volumes:
+  #     - ./volumes/certbot/conf:/etc/letsencrypt
+  #     - ./volumes/certbot/www:/var/www/html
+  #     - ./volumes/certbot/logs:/var/log/letsencrypt
+  #     - ./volumes/certbot/conf/live:/etc/letsencrypt/live
+  #     - ./certbot/update-cert.template.txt:/update-cert.template.txt
+  #     - ./certbot/docker-entrypoint.sh:/docker-entrypoint.sh
+  #   environment:
+  #     - CERTBOT_EMAIL=${CERTBOT_EMAIL}
+  #     - CERTBOT_DOMAIN=${CERTBOT_DOMAIN}
+  #     - CERTBOT_OPTIONS=${CERTBOT_OPTIONS:-}
+  #   entrypoint: [ '/docker-entrypoint.sh' ]
+  #   command: [ 'tail', '-f', '/dev/null' ]
 
   # # The nginx reverse proxy.
   # # used for reverse proxying the API service and Web service.
@@ -687,7 +687,7 @@ services:
     restart: always
     volumes:
       # Mount the Weaviate data directory to the con tainer.
-      - ./volumes/weaviate:/var/lib/weaviate
+      - weaviate_data:/var/lib/weaviate
     environment:
       # The Weaviate configurations
       # You can refer to the [Weaviate](https://weaviate.io/developers/weaviate/config-refs/env-vars) documentation for more information.
@@ -704,17 +704,17 @@ services:
 
   # Qdrant vector store.
   # (if used, you need to set VECTOR_STORE to qdrant in the api & worker service.)
-  qdrant:
-    image: langgenius/qdrant:v1.7.3
-    profiles:
-      - qdrant
-    restart: always
-    volumes:
-      - ./volumes/qdrant:/qdrant/storage
-    environment:
-      QDRANT_API_KEY: ${QDRANT_API_KEY:-difyai123456}
+  # qdrant:
+  #   image: langgenius/qdrant:v1.7.3
+  #   profiles:
+  #     - qdrant
+  #   restart: always
+  #   volumes:
+  #     - ./volumes/qdrant:/qdrant/storage
+  #   environment:
+  #     QDRANT_API_KEY: ${QDRANT_API_KEY:-difyai123456}
 
-  # The Couchbase vector store.
+  # # The Couchbase vector store.
   couchbase-server:
     build: ./couchbase-server
     profiles:
@@ -738,7 +738,7 @@ services:
     entrypoint: [ "" ]
     command: sh -c "/opt/couchbase/init/init-cbserver.sh"
     volumes:
-      - ./volumes/couchbase/data:/opt/couchbase/var/lib/couchbase/data
+      - couchbase_data:/opt/couchbase/var/lib/couchbase/data
     healthcheck:
       # ensure bucket was created before proceeding
       test: [ "CMD-SHELL", "curl -s -f -u Administrator:password http://localhost:8091/pools/default/buckets | grep -q '\\[{' || exit 1" ]
@@ -765,8 +765,8 @@ services:
       PG_BIGM: ${PGVECTOR_PG_BIGM:-false}
       PG_BIGM_VERSION: ${PGVECTOR_PG_BIGM_VERSION:-1.2-20240606}
     volumes:
-      - ./volumes/pgvector/data:/var/lib/postgresql/data
-      - ./pgvector/docker-entrypoint.sh:/docker-entrypoint.sh
+      - dify_pgvector:/var/lib/postgresql/data
+      - dify_pgvector/pgvector/docker-entrypoint.sh:/docker-entrypoint.sh
     entrypoint: [ '/docker-entrypoint.sh' ]
     healthcheck:
       test: [ 'CMD', 'pg_isready' ]
@@ -789,7 +789,7 @@ services:
       # postgres data directory
       PGDATA: ${PGVECTOR_PGDATA:-/var/lib/postgresql/data/pgdata}
     volumes:
-      - ./volumes/pgvecto_rs/data:/var/lib/postgresql/data
+      - dify_pgvecto_rs:/var/lib/postgresql/data
     healthcheck:
       test: [ 'CMD', 'pg_isready' ]
       interval: 1s
@@ -803,7 +803,7 @@ services:
       - chroma
     restart: always
     volumes:
-      - ./volumes/chroma:/chroma/chroma
+      - dify_chroma:/chroma/chroma
     environment:
       CHROMA_SERVER_AUTHN_CREDENTIALS: ${CHROMA_SERVER_AUTHN_CREDENTIALS:-difyai123456}
       CHROMA_SERVER_AUTHN_PROVIDER: ${CHROMA_SERVER_AUTHN_PROVIDER:-chromadb.auth.token_authn.TokenAuthenticationServerProvider}
@@ -817,9 +817,9 @@ services:
       - oceanbase
     restart: always
     volumes:
-      - ./volumes/oceanbase/data:/root/ob
-      - ./volumes/oceanbase/conf:/root/.obd/cluster
-      - ./volumes/oceanbase/init.d:/root/boot/init.d
+      - dify_oceanbase/data:/root/ob
+      - dify_oceanbase/conf:/root/.obd/cluster
+      - dify_oceanbase/init.d:/root/boot/init.d
     environment:
       OB_MEMORY_LIMIT: ${OCEANBASE_MEMORY_LIMIT:-6G}
       OB_SYS_PASSWORD: ${OCEANBASE_VECTOR_PASSWORD:-difyai123456}
@@ -1069,7 +1069,22 @@ networks:
   opensearch-net:
     driver: bridge
     internal: true
+  
 
 volumes:
   oradata:
-  dify_es01_data:
+    dify_es01_data:
+    external: true
+    name: dify_es01_data
+
+  dify_redis_data:
+    external: true
+    name: dify_redis_data
+
+  difydb_data:
+    external: true
+    name: difydb_data
+
+  weaviate_data:
+    external: true
+    name: weaviate_data
