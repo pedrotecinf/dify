@@ -1073,7 +1073,7 @@ networks:
 
 volumes:
   oradata:
-    dify_es01_data:
+  dify_es01_data:
     
   dify_redis_data:
     external: true
