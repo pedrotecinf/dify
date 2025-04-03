@@ -535,7 +535,7 @@ services:
 
   # The redis cache.
   redis:
-    image: redis:6-alpine
+    image: redis:latest
     restart: always
     environment:
       REDISCLI_AUTH: ${REDIS_PASSWORD:-difyai123456}
@@ -543,7 +543,7 @@ services:
       # Mount the redis data directory to the container.
       - dify_redis_data:/data
     # Set the redis password when startup redis server.
-    command: redis-server --requirepass ${REDIS_PASSWORD:-difyai123456}
+    command: redis-server --requirepass ${REDIS_PASSWORD:-difyai123456} --port 6379 --appendonly yes --save 900 1 --save 300 10 --save 60 10000 --appendfsync everysec
     healthcheck:
       test: [ 'CMD', 'redis-cli', 'ping' ]
 
