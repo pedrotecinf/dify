@@ -592,8 +592,8 @@ services:
       PIP_MIRROR_URL: ${PIP_MIRROR_URL:-}
     ports:
       - "${EXPOSE_PLUGIN_DEBUGGING_PORT:-5003}:${PLUGIN_DEBUGGING_PORT:-5003}"
-    # volumes:
-    #   - plugin_daemon:/app/storage
+    volumes:
+      - plugin_daemon:/app/storage
     depends_on:
       - db
 
@@ -1086,3 +1086,7 @@ volumes:
   weaviate_data:
     external: true
     name: weaviate_data
+
+  plugin_daemon:
+    external: true
+    name: plugin_daemon
